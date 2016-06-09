@@ -27,7 +27,7 @@ import org.rajawali3d.primitives.Sphere;
 import org.rajawali3d.view.ISurface;
 
 public class ChaseCameraFragment extends AExampleFragment implements
-    OnSeekBarChangeListener {
+        OnSeekBarChangeListener {
 
     private SeekBar mSeekBarX, mSeekBarY, mSeekBarZ;
     private Vector3 mCameraOffset;
@@ -50,7 +50,23 @@ public class ChaseCameraFragment extends AExampleFragment implements
         mSeekBarZ = new SeekBar(getActivity());
         mSeekBarZ.setMax(100);
         mSeekBarZ.setProgress(70);
-        mSeekBarZ.setOnSeekBarChangeListener(this);
+        mSeekBarZ.setOnSeekBarChangeListener(new OnSeekBarChangeListener(){
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
         ll.addView(mSeekBarZ);
 
         mSeekBarY = new SeekBar(getActivity());

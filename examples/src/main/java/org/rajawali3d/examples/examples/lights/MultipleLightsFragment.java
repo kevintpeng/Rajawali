@@ -1,7 +1,16 @@
 package org.rajawali3d.examples.examples.lights;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.SeekBar;
+
 import org.rajawali3d.Object3D;
 import org.rajawali3d.animation.Animation;
 import org.rajawali3d.animation.Animation3D;
@@ -14,11 +23,90 @@ import org.rajawali3d.materials.Material;
 import org.rajawali3d.materials.methods.DiffuseMethod;
 import org.rajawali3d.math.vector.Vector3;
 
-public class MultipleLightsFragment extends AExampleFragment {
+public class MultipleLightsFragment extends AExampleFragment implements
+		SeekBar.OnSeekBarChangeListener {
+
+	private SeekBar mSeekBarRotation, mSeekBarLight;
+	Object3D suzanne;
+	private PointLight light1;
 
 	@Override
     public AExampleRenderer createRenderer() {
 		return new MultipleLightsRenderer(getActivity(), this);
+	}
+
+	@Override
+	public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+
+	}
+
+	@Override
+	public void onStartTrackingTouch(SeekBar seekBar) {
+
+	}
+
+	@Override
+	public void onStopTrackingTouch(SeekBar seekBar) {
+
+	}
+
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+							 Bundle savedInstanceState) {
+		super.onCreateView(inflater, container, savedInstanceState);
+
+		LinearLayout ll = new LinearLayout(getActivity());
+		ll.setOrientation(LinearLayout.VERTICAL);
+		ll.setGravity(Gravity.BOTTOM);
+
+		mSeekBarLight = new SeekBar(getActivity());
+		mSeekBarLight.setBackgroundColor(Color.CYAN);
+		mSeekBarLight.setMax(1000);
+		mSeekBarLight.setPadding(0, 0, 0, 50);
+		mSeekBarLight.setProgress(100);
+		mSeekBarLight.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+				light1.setPower(progress/100f);
+			}
+
+			@Override
+			public void onStartTrackingTouch(SeekBar seekBar) {
+
+			}
+
+			@Override
+			public void onStopTrackingTouch(SeekBar seekBar) {
+
+			}
+		});
+		ll.addView(mSeekBarLight);
+
+		mSeekBarRotation = new SeekBar(getActivity());
+		mSeekBarRotation.setMax(360);
+		mSeekBarRotation.setProgress(0);
+		mSeekBarRotation.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
+
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+				suzanne.setRotY(progress);
+			}
+
+			@Override
+			public void onStartTrackingTouch(SeekBar seekBar) {
+
+			}
+
+			@Override
+			public void onStopTrackingTouch(SeekBar seekBar) {
+
+			}
+		});
+		ll.addView(mSeekBarRotation);
+
+		mLayout.addView(ll);
+
+		return mLayout;
 	}
 
 	private final class MultipleLightsRenderer extends AExampleRenderer {
@@ -29,10 +117,12 @@ public class MultipleLightsFragment extends AExampleFragment {
 
         @Override
 		protected void initScene() {
-			PointLight light1 = new PointLight();
+			light1 = new PointLight(); //
 			light1.setPower(1.5f);
+			light1.setY(2.0);
+			light1.setX(1.0);
 			PointLight light2 = new PointLight();
-			light2.setPower(1.5f);
+			light2.setPower(0f);
 
 			getCurrentScene().addLight(light1);
 			getCurrentScene().addLight(light2);
@@ -44,12 +134,13 @@ public class MultipleLightsFragment extends AExampleFragment {
                 final LoaderAWD parser = new LoaderAWD(mContext.getResources(), mTextureManager, R.raw.awd_suzanne);
                 parser.parse();
 
-                Object3D suzanne = parser.getParsedObject();
+                suzanne = parser.getParsedObject();
 				Material material = new Material();
 				material.setDiffuseMethod(new DiffuseMethod.Lambert());
                 material.setColor(0xff990000);
 				material.enableLighting(true);
 				suzanne.setMaterial(material);
+
 				getCurrentScene().addChild(suzanne);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -61,7 +152,7 @@ public class MultipleLightsFragment extends AExampleFragment {
 			anim.setRepeatMode(Animation.RepeatMode.REVERSE_INFINITE);
 			anim.setTransformable3D(light1);
 			getCurrentScene().registerAnimation(anim);
-			anim.play();
+			//anim.play();
 
 			anim = new TranslateAnimation3D(new Vector3(10, 10, 5),
 					new Vector3(10, -10, 5));
@@ -69,7 +160,7 @@ public class MultipleLightsFragment extends AExampleFragment {
 			anim.setRepeatMode(Animation.RepeatMode.REVERSE_INFINITE);
 			anim.setTransformable3D(light2);
 			getCurrentScene().registerAnimation(anim);
-			anim.play();
+			//anim.play();
 		}
 
 	}

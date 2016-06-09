@@ -7,6 +7,8 @@ import org.rajawali3d.animation.Animation;
 import org.rajawali3d.animation.EllipticalOrbitAnimation3D;
 import org.rajawali3d.examples.examples.AExampleFragment;
 import org.rajawali3d.lights.DirectionalLight;
+import org.rajawali3d.lights.PointLight;
+import org.rajawali3d.lights.SpotLight;
 import org.rajawali3d.materials.Material;
 import org.rajawali3d.materials.methods.DiffuseMethod;
 import org.rajawali3d.materials.methods.SpecularMethod;
@@ -29,6 +31,18 @@ public class DirectionalLightFragment extends AExampleFragment {
 
         @Override
 		protected void initScene() {
+			final SpotLight spotLight = new SpotLight();
+			spotLight.setPower(1.5f);
+			spotLight.enableLookAt();
+			spotLight.setPosition(0, 4.0, 0.0);
+			spotLight.setLookAt(0, 0, 0);
+			getCurrentScene().addLight(spotLight);
+
+			PointLight pointLight = new PointLight();
+			pointLight.setY(2);
+			pointLight.setPower(1.5f);
+			getCurrentScene().addLight(pointLight);
+
 			final DirectionalLight directionalLight = new DirectionalLight();
             directionalLight.setPosition(1.0, 0.0, 0.0);
 			directionalLight.setPower(1.5f);
