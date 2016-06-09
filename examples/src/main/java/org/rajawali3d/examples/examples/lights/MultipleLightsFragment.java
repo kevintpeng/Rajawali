@@ -2,10 +2,14 @@ package org.rajawali3d.examples.examples.lights;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.Point;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.view.MotionEventCompat;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -22,6 +26,7 @@ import org.rajawali3d.loader.LoaderAWD;
 import org.rajawali3d.materials.Material;
 import org.rajawali3d.materials.methods.DiffuseMethod;
 import org.rajawali3d.math.vector.Vector3;
+import org.rajawali3d.primitives.Sphere;
 
 public class MultipleLightsFragment extends AExampleFragment implements
 		SeekBar.OnSeekBarChangeListener {
@@ -29,6 +34,8 @@ public class MultipleLightsFragment extends AExampleFragment implements
 	private SeekBar mSeekBarRotation, mSeekBarLight;
 	Object3D suzanne;
 	private PointLight light1;
+	private Point currentObjectPoint;
+	private Point previousObjectPoint;
 
 	@Override
     public AExampleRenderer createRenderer() {
@@ -54,6 +61,46 @@ public class MultipleLightsFragment extends AExampleFragment implements
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 							 Bundle savedInstanceState) {
 		super.onCreateView(inflater, container, savedInstanceState);
+		currentObjectPoint = new Point(0, 0);
+		previousObjectPoint = new Point(0, 0);
+		mLayout.setOnTouchListener(new View.OnTouchListener() {
+
+			public boolean onTouch(View v, MotionEvent event) {
+
+				int action = MotionEventCompat.getActionMasked(event);
+
+				switch(action) {
+					case (MotionEvent.ACTION_DOWN) :
+						System.out.println("Action was DOWN");
+						currentObjectPoint.set((int)event.getX(), (int)event.getY());
+						previousObjectPoint.set(currentObjectPoint.x, currentObjectPoint.y);
+						return true;
+					case (MotionEvent.ACTION_MOVE) :
+						System.out.println("Action was MOVE");
+						previousObjectPoint.set(currentObjectPoint.x, currentObjectPoint.y);
+						currentObjectPoint.set((int)event.getX(), (int)event.getY());
+						System.out.println("X:" + currentObjectPoint.x + "   Y:" + currentObjectPoint.y);
+						int deltaX = currentObjectPoint.x - previousObjectPoint.x;
+						int deltaY = currentObjectPoint.y - previousObjectPoint.y;
+						suzanne.setX(suzanne.getX()+(deltaX/300F));
+						suzanne.setZ(suzanne.getZ()+(deltaY/300F));
+						return true;
+					case (MotionEvent.ACTION_UP) :
+						System.out.println("Action was UP");
+						return true;
+					case (MotionEvent.ACTION_CANCEL) :
+						System.out.println("Action was CANCEL");
+						return true;
+					case (MotionEvent.ACTION_OUTSIDE) :
+						System.out.println("Movement occurred outside bounds " +
+								"of current screen element");
+						return true;
+					default :
+						//SHIT
+				}
+				return true;
+			}
+		});
 
 		LinearLayout ll = new LinearLayout(getActivity());
 		ll.setOrientation(LinearLayout.VERTICAL);
@@ -133,6 +180,9 @@ public class MultipleLightsFragment extends AExampleFragment implements
 			try {
                 final LoaderAWD parser = new LoaderAWD(mContext.getResources(), mTextureManager, R.raw.awd_suzanne);
                 parser.parse();
+
+//				Sphere rootSphere = new Sphere(.2f, 12, 12);
+//				suzanne = rootSphere.clone(false);
 
                 suzanne = parser.getParsedObject();
 				Material material = new Material();
