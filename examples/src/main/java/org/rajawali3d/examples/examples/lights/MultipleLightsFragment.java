@@ -34,8 +34,8 @@ public class MultipleLightsFragment extends AExampleFragment implements
 	private SeekBar mSeekBarRotation, mSeekBarLight;
 	Object3D suzanne;
 	private PointLight light1;
-	private Point currentObjectPoint;
-	private Point previousObjectPoint;
+	private Point currentObjectPoint, previousObjectPoint;
+	private MotionEvent.PointerCoords curPointer1, curPointer2, prevPointer1, prevPointer2;
 
 	@Override
     public AExampleRenderer createRenderer() {
@@ -63,30 +63,68 @@ public class MultipleLightsFragment extends AExampleFragment implements
 		super.onCreateView(inflater, container, savedInstanceState);
 		currentObjectPoint = new Point(0, 0);
 		previousObjectPoint = new Point(0, 0);
+		curPointer1 = new MotionEvent.PointerCoords();
+		prevPointer1 = new MotionEvent.PointerCoords();
+		curPointer2 = new MotionEvent.PointerCoords();
+		prevPointer2 = new MotionEvent.PointerCoords();
+		final FloatingPoint rotation = new FloatingPoint();
 		mLayout.setOnTouchListener(new View.OnTouchListener() {
 
 			public boolean onTouch(View v, MotionEvent event) {
 
 				int action = MotionEventCompat.getActionMasked(event);
-
 				switch(action) {
-					case (MotionEvent.ACTION_DOWN) :
-						System.out.println("Action was DOWN");
-						currentObjectPoint.set((int)event.getX(), (int)event.getY());
-						previousObjectPoint.set(currentObjectPoint.x, currentObjectPoint.y);
+					case (MotionEvent.ACTION_DOWN):
+						if (event.getPointerCount() == 2) {
+							System.out.println("TWO FINGER DOWN");
+							rotation.twoFingers=true;
+							event.getPointerCoords(0, curPointer1);
+							event.getPointerCoords(0, prevPointer1);
+							event.getPointerCoords(1, curPointer2);
+							event.getPointerCoords(1, prevPointer2);
+						} else {
+							System.out.println("Action was DOWN");
+							currentObjectPoint.set((int) event.getX(), (int) event.getY());
+							previousObjectPoint.set(currentObjectPoint.x, currentObjectPoint.y);
+						}
 						return true;
-					case (MotionEvent.ACTION_MOVE) :
-						System.out.println("Action was MOVE");
-						previousObjectPoint.set(currentObjectPoint.x, currentObjectPoint.y);
-						currentObjectPoint.set((int)event.getX(), (int)event.getY());
-						System.out.println("X:" + currentObjectPoint.x + "   Y:" + currentObjectPoint.y);
-						int deltaX = currentObjectPoint.x - previousObjectPoint.x;
-						int deltaY = currentObjectPoint.y - previousObjectPoint.y;
-						suzanne.setX(suzanne.getX()+(deltaX/300F));
-						suzanne.setZ(suzanne.getZ()+(deltaY/300F));
+					case (MotionEvent.ACTION_MOVE):
+						if(event.getPointerCount() == 2) {
+							System.out.println("TWO TOUCH MOVE");
+							if (rotation.twoFingers==false){
+								event.getPointerCoords(0, curPointer1);
+								event.getPointerCoords(0, prevPointer1);
+								event.getPointerCoords(1, curPointer2);
+								event.getPointerCoords(1, prevPointer2);
+							} else {
+								prevPointer1.copyFrom(curPointer1);
+								prevPointer2.copyFrom(curPointer2);
+								event.getPointerCoords(0, curPointer1);
+								event.getPointerCoords(1, curPointer2);
+							}
+							rotation.twoFingers = true;
+							double v1x = (double)(curPointer1.x-prevPointer1.x);
+							double v1y = (double)(curPointer1.y-prevPointer1.y);
+							double v2x = (double)(curPointer2.x-prevPointer2.x);
+							double v2y = (double)(curPointer2.y-prevPointer2.y);
+							System.out.println((v1x+v2x)/(-7));
+							rotation.x = (rotation.x + (v1x+v2x)/(-7))%360;
+							suzanne.setRotY(rotation.x);
+						}
+						else if(!rotation.twoFingers){
+							System.out.println("Action was MOVE");
+							previousObjectPoint.set(currentObjectPoint.x, currentObjectPoint.y);
+							currentObjectPoint.set((int) event.getX(), (int) event.getY());
+							System.out.println("X:" + currentObjectPoint.x + "   Y:" + currentObjectPoint.y);
+							int deltaX = currentObjectPoint.x - previousObjectPoint.x;
+							int deltaY = currentObjectPoint.y - previousObjectPoint.y;
+							suzanne.setX(suzanne.getX() + (deltaX / 300F));
+							suzanne.setZ(suzanne.getZ() + (deltaY / 300F));
+						}
 						return true;
 					case (MotionEvent.ACTION_UP) :
 						System.out.println("Action was UP");
+						rotation.twoFingers = false;
 						return true;
 					case (MotionEvent.ACTION_CANCEL) :
 						System.out.println("Action was CANCEL");
@@ -106,50 +144,28 @@ public class MultipleLightsFragment extends AExampleFragment implements
 		ll.setOrientation(LinearLayout.VERTICAL);
 		ll.setGravity(Gravity.BOTTOM);
 
-		mSeekBarLight = new SeekBar(getActivity());
-		mSeekBarLight.setBackgroundColor(Color.CYAN);
-		mSeekBarLight.setMax(1000);
-		mSeekBarLight.setPadding(0, 0, 0, 50);
-		mSeekBarLight.setProgress(100);
-		mSeekBarLight.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-			@Override
-			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-				light1.setPower(progress/100f);
-			}
-
-			@Override
-			public void onStartTrackingTouch(SeekBar seekBar) {
-
-			}
-
-			@Override
-			public void onStopTrackingTouch(SeekBar seekBar) {
-
-			}
-		});
-		ll.addView(mSeekBarLight);
-
-		mSeekBarRotation = new SeekBar(getActivity());
-		mSeekBarRotation.setMax(360);
-		mSeekBarRotation.setProgress(0);
-		mSeekBarRotation.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
-
-			@Override
-			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-				suzanne.setRotY(progress);
-			}
-
-			@Override
-			public void onStartTrackingTouch(SeekBar seekBar) {
-
-			}
-
-			@Override
-			public void onStopTrackingTouch(SeekBar seekBar) {
-
-			}
-		});
-		ll.addView(mSeekBarRotation);
+//		mSeekBarLight = new SeekBar(getActivity());
+//		mSeekBarLight.setBackgroundColor(Color.CYAN);
+//		mSeekBarLight.setMax(1000);
+//		mSeekBarLight.setPadding(0, 0, 0, 50);
+//		mSeekBarLight.setProgress(100);
+//		mSeekBarLight.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+//			@Override
+//			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+//				light1.setPower(progress/100f);
+//			}
+//
+//			@Override
+//			public void onStartTrackingTouch(SeekBar seekBar) {
+//
+//			}
+//
+//			@Override
+//			public void onStopTrackingTouch(SeekBar seekBar) {
+//
+//			}
+//		});
+//		ll.addView(mSeekBarLight);
 
 		mLayout.addView(ll);
 
